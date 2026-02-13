@@ -1,0 +1,13 @@
+# Binaries
+slurmify
+*.exe
+*.dll
+
+# Dir
+dev
+test
+Logs
+Sbatch
+
+# Mac OS junk
+.DS_Store
