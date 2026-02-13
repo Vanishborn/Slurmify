@@ -6,6 +6,7 @@ slurmify
 # Dir
 dev
 test
+dist
 Logs
 Sbatch
 
