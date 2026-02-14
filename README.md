@@ -23,7 +23,7 @@ Go 1.25+ required.
 Clone the repo and use Make to build the versioned binary:
 
 ```zsh
-git clone [https://github.com/Vanishborn/slurmify.git](https://github.com/Vanishborn/slurmify.git)
+git clone https://github.com/Vanishborn/slurmify.git
 cd slurmify
 make
 ```
