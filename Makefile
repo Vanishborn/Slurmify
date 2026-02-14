@@ -1,5 +1,6 @@
 BINARY_NAME=slurmify
 VERSION=$(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
+GOPATH=$(shell go env GOPATH)
 
 default: build
 
