@@ -35,7 +35,8 @@ release: clean
 		echo "Building $$OS $$ARCH..."; \
 		mkdir -p $(DIST_DIR)/$$platform; \
 		GOOS=$$OS GOARCH=$$ARCH go build -ldflags "-X main.version=$(VERSION)" -o $(DIST_DIR)/$$platform/$(BINARY_NAME); \
-		tar -czf $(DIST_DIR)/Slurmify_$(VERSION)_$${platform}.tar.gz -C $(DIST_DIR)/$$platform $(BINARY_NAME); \
+		cp LICENSE $(DIST_DIR)/$$platform/; \
+		tar -czf $(DIST_DIR)/Slurmify_$(VERSION)_$${platform}.tar.gz -C $(DIST_DIR)/$$platform $(BINARY_NAME) LICENSE; \
 	done
 
 	@echo "Generating Checksums..."
