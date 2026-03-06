@@ -1,5 +1,7 @@
 # Slurmify
 
+[![DOI](https://zenodo.org/badge/1156396206.svg)](https://doi.org/10.5281/zenodo.18886637)
+
 **Slurmify** is a lightweight, high-performance CLI tool written in Go that automates the creation of Slurm batch scripts (`.sbatch`) from a simple list of commands. It is designed for high-throughput computing, automatically handling job naming, log directory management, and command formatting.
 
 ## Features
