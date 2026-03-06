@@ -108,6 +108,7 @@ func processInputFile(conf Config) (int, error) {
 		filename := resolveFilename(conf.OutputDir, jobName, count)
 		if err := os.WriteFile(filename, []byte(scriptContent), 0644); err != nil {
 			fmt.Fprintf(os.Stderr, "[slurmify] Warning: Could not write %s: %v\n", filename, err)
+			count--
 		}
 	}
 
@@ -156,24 +157,24 @@ func generateScript(cmd, jobName string, c Config) string {
 
 // writeSbatchHeader handles the #SBATCH lines
 func writeSbatchHeader(sb *strings.Builder, jobName string, c Config) {
-	sb.WriteString("#!/bin/bash\n")
-	sb.WriteString(fmt.Sprintf("#SBATCH --job-name=%s\n", jobName))
-	sb.WriteString(fmt.Sprintf("#SBATCH --account=%s\n", c.Account))
-	sb.WriteString(fmt.Sprintf("#SBATCH --partition=%s\n", c.Partition))
-	sb.WriteString("#SBATCH --nodes=1\n")
-	sb.WriteString("#SBATCH --ntasks=1\n")
-	sb.WriteString(fmt.Sprintf("#SBATCH --cpus-per-task=%d\n", c.CPUs))
-	sb.WriteString(fmt.Sprintf("#SBATCH --mem=%s\n", c.Mem))
-	sb.WriteString(fmt.Sprintf("#SBATCH --time=%s\n", c.Time))
-	sb.WriteString(fmt.Sprintf("#SBATCH --output=%s/%s_%%j.out\n", c.LogsDir, jobName))
-	sb.WriteString(fmt.Sprintf("#SBATCH --error=%s/%s_%%j.err\n", c.LogsDir, jobName))
+	fmt.Fprintf(sb, "#!/bin/bash\n")
+	fmt.Fprintf(sb, "#SBATCH --job-name=%s\n", jobName)
+	fmt.Fprintf(sb, "#SBATCH --account=%s\n", c.Account)
+	fmt.Fprintf(sb, "#SBATCH --partition=%s\n", c.Partition)
+	fmt.Fprintf(sb, "#SBATCH --nodes=1\n")
+	fmt.Fprintf(sb, "#SBATCH --ntasks=1\n")
+	fmt.Fprintf(sb, "#SBATCH --cpus-per-task=%d\n", c.CPUs)
+	fmt.Fprintf(sb, "#SBATCH --mem=%s\n", c.Mem)
+	fmt.Fprintf(sb, "#SBATCH --time=%s\n", c.Time)
+	fmt.Fprintf(sb, "#SBATCH --output=%s/%s_%%j.out\n", c.LogsDir, jobName)
+	fmt.Fprintf(sb, "#SBATCH --error=%s/%s_%%j.err\n", c.LogsDir, jobName)
 
 	if c.Gres != "" {
-		sb.WriteString(fmt.Sprintf("#SBATCH --gres=%s\n", c.Gres))
+		fmt.Fprintf(sb, "#SBATCH --gres=%s\n", c.Gres)
 	}
 	if c.Email != "" {
-		sb.WriteString(fmt.Sprintf("#SBATCH --mail-user=%s\n", c.Email))
-		sb.WriteString("#SBATCH --mail-type=BEGIN,END,FAIL\n")
+		fmt.Fprintf(sb, "#SBATCH --mail-user=%s\n", c.Email)
+		fmt.Fprintf(sb, "#SBATCH --mail-type=BEGIN,END,FAIL\n")
 	}
 }
 
@@ -198,8 +199,9 @@ func writePrettyCommand(sb *strings.Builder, cmd string) {
 			curr = quoteArg(token)
 		}
 
-		// Check if this is a flag followed by a value
-		if strings.HasPrefix(curr, "-") && i+1 < len(tokens) {
+		// Check if this is a short/long flag followed by a separate value.
+		// Skip if the flag already embeds its value (e.g. --output=file.bam).
+		if strings.HasPrefix(curr, "-") && !strings.Contains(curr, "=") && i+1 < len(tokens) {
 			next := tokens[i+1]
 			if !strings.HasPrefix(next, "-") && !isShellOperator(next) {
 				curr = fmt.Sprintf("%s %s", curr, quoteArg(next))
@@ -242,9 +244,14 @@ func deriveJobName(cmd, prefix string, idx int) string {
 			}
 			base = strings.TrimSuffix(base, ext)
 		}
-		// Sanitize
-		base = strings.ReplaceAll(base, "*", "")
-		base = strings.ReplaceAll(base, "?", "")
+		// Sanitize: strip characters unsafe in filenames
+		base = strings.Map(func(r rune) rune {
+			switch r {
+			case '*', '?', '/', '\\', ':', '"', '<', '>', '|', ' ':
+				return -1
+			}
+			return r
+		}, base)
 	}
 
 	if base == "" {
@@ -288,7 +295,7 @@ func parseFlags() (Config, error) {
 	flag.StringVar(&c.Module, "m", "", "Module to load")
 
 	var showVersion bool
-    flag.BoolVar(&showVersion, "V", false, "Show version and exit")
+	flag.BoolVar(&showVersion, "V", false, "Show version and exit")
 
 	flag.Parse()
 

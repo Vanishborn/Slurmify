@@ -90,6 +90,7 @@ bwa mem \
 | **-E** | Email for notifications                  |     -      |    No    |
 | **-J** | Job name prefix                          |   `job`    |    No    |
 | **-m** | Environment module to load               |     -      |    No    |
+| **-V** | Print version and exit                   |     -      |    No    |
 
 ## Future Directions
 
